@@ -127,7 +127,7 @@ describe("Rush Hour test", () => {
   });
 
   it("should allow car to go to right", () => {
-    const result = rushHour.canGoToRight(
+    const result = rushHour.canMoveToRight(
       [
         [0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0],
@@ -160,7 +160,7 @@ describe("Rush Hour test", () => {
 
   it("should disallow car to go to right when has another car", () => {
     const anotherCar = 2;
-    const result = rushHour.canGoToRight(
+    const result = rushHour.canMoveToRight(
       [
         [0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, anotherCar, 0],
@@ -194,7 +194,7 @@ describe("Rush Hour test", () => {
   });
 
   it("should disallow car to go to right when is at the end", () => {
-    const result = rushHour.canGoToRight(
+    const result = rushHour.canMoveToRight(
       [
         [0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0],

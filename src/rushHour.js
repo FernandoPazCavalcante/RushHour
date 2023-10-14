@@ -78,7 +78,7 @@ class RushHour {
     return false;
   }
 
-  canGoToRight(board, carNumber) {
+  canMoveToRight(board, carNumber) {
     for (let row = 0; row < board.length; row++) {
       for (let col = 0; col < board[row].length; col++) {
         if (board[row][col] === carNumber) {
@@ -120,7 +120,7 @@ class RushHour {
       for (let col = 0; col < board[row].length; col++) {
         let element = board[row][col];
         if (element === carNumber) {
-          if (!this.canGoToRight(board, carNumber)) return board;
+          if (!this.canMoveToRight(board, carNumber)) return board;
 
           if (!carRear) {
             let lastCol = board[row][col - 1];
@@ -198,12 +198,12 @@ class RushHour {
           if (orientation === this.#horizontal) {
             let boardCopy = this.createACopy(board);
 
-            if (this.canGoToRight(boardCopy, carNumber)) {
+            if (this.canMoveToRight(boardCopy, carNumber)) {
               let boardMovedToRight = this.moveToRight(boardCopy, carNumber)
               this.states.push(boardMovedToRight);
               return this.setBoardStates(boardMovedToRight)
             }
-            if (!this.canGoToRight(boardCopy, carNumber)) {
+            if (!this.canMoveToRight(boardCopy, carNumber)) {
               return board;
             }
           }
