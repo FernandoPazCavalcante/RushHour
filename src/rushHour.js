@@ -1,5 +1,5 @@
 const { Queue } = require("./queue");
-const MovementDirection = require("./movementDirection");
+const movementDirection = require("./movementDirection");
 
 class Step {
   constructor(carNumber, movementDirection) {
@@ -15,14 +15,19 @@ class State {
   }
 }
 
+class Path {
+  constructor(states) {
+    this.states = states;
+  }
+}
+
 class RushHour {
+  MAX_INDEX = 5;
   MAIN_CAR = 1;
   HORIZONTAL = "horizontal";
   VERTICAL = "vertical";
 
   queue = new Queue();
-
-  hasSolution = false;
 
   getOrientation(board, carNumber) {
     for (let row = 0; row < board.length; row++) {
@@ -40,210 +45,53 @@ class RushHour {
     }
   }
 
-  canMoveUp(board, carNumber) {
-    for (let row = 0; row < board.length; row++) {
-      for (let col = 0; col < board[row].length; col++) {
-        if (board[row][col] === carNumber) {
-          if (row === 0) {
-            return false;
-          }
-          const lastRow = board[row - 1][col];
-          if (lastRow === 0) {
-            return true;
-          }
-          return false;
-        }
-      }
-    }
-    return false;
+  canMoveUp(board, row, col) {
+    return row > 0 && board[row - 1][col] === 0;
   }
 
-  canMoveDown(board, carNumber) {
-    for (let row = 0; row < board.length; row++) {
-      for (let col = 0; col < board[row].length; col++) {
-        if (board[row][col] === carNumber) {
-          if (row === 5) {
-            return false;
-          }
-          const nextRow = board[row + 1][col];
-          if (nextRow === carNumber) {
-            continue;
-          }
-          if (nextRow === 0) {
-            return true;
-          }
-          return false;
-        }
-      }
-    }
-    return false;
+  canMoveDown(board, row, col) {
+    return row < this.MAX_INDEX && board[row + 1][col] === 0;
   }
 
-  canMoveToRight(board, carNumber) {
-    for (let row = 0; row < board.length; row++) {
-      for (let col = 0; col < board[row].length; col++) {
-        if (board[row][col] === carNumber) {
-          const nextCol = board[row][col + 1];
-          if (nextCol === carNumber) {
-            continue;
-          }
-          if (nextCol === 0) {
-            return true;
-          }
-          return false;
-        }
-      }
-    }
-    return false;
+  canMoveToRight(board, row, col) {
+    return col < this.MAX_INDEX && board[row][col + 1] === 0;
   }
 
-  canMoveToLeft(board, carNumber) {
-    for (let row = 0; row < board.length; row++) {
-      for (let col = 0; col < board[row].length; col++) {
-        if (board[row][col] === carNumber) {
-          const nextCol = board[row][col - 1];
-          if (nextCol === carNumber) {
-            continue;
-          }
-          if (nextCol === 0) {
-            return true;
-          }
-          return false;
-        }
-      }
-    }
-    return false;
-  }
-
-  moveToRight(board, carNumber) {
-    let carRear = undefined;
-    for (let row = 0; row < board.length; row++) {
-      for (let col = 0; col < board[row].length; col++) {
-        let element = board[row][col];
-        if (element === carNumber) {
-          if (!this.canMoveToRight(board, carNumber)) return board;
-
-          if (!carRear) {
-            let lastCol = board[row][col - 1];
-            if (lastCol !== carNumber) {
-              carRear = { row, col };
-            }
-          }
-
-          let nextCol = board[row][col + 1];
-
-          if (nextCol === carNumber) {
-            continue;
-          }
-
-          board[row][col + 1] = carNumber;
-          board[carRear.row][carRear.col] = 0;
-          return board;
-        }
-      }
-    }
-  }
-
-  moveToLeft(board, carNumber) {
-    let carRear = undefined;
-    for (let row = 0; row < board.length; row++) {
-      for (let col = 0; col < board[row].length; col++) {
-        let element = board[row][col];
-        if (element === carNumber) {
-          if (!this.canMoveToLeft(board, carNumber)) return board;
-
-          if (!carRear) {
-            let lastCol = board[row][col - 1];
-            if (lastCol !== carNumber) {
-              carRear = { row, col };
-            }
-          }
-
-          let nextCol = board[row][col + 1];
-
-          if (nextCol === carNumber) {
-            continue;
-          }
-
-          board[row][col] = 0;
-          board[carRear.row][carRear.col - 1] = carNumber;
-          return board;
-        }
-      }
-    }
-  }
-
-  moveUp(board, carNumber) {
-    let carRear = undefined;
-    for (let row = 0; row < board.length; row++) {
-      for (let col = 0; col < board[row].length; col++) {
-        let element = board[row][col];
-        if (element === carNumber) {
-          if (!this.canMoveUp(board, carNumber)) return board;
-
-          if (!carRear) {
-            let lastCol = board[row - 1][col];
-            if (lastCol !== carNumber) {
-              carRear = { row, col };
-            }
-          }
-
-          let nextCol = board[row + 1][col];
-
-          if (nextCol === carNumber) {
-            continue;
-          }
-
-          board[row][col] = 0;
-          board[carRear.row - 1][carRear.col] = carNumber;
-          return board;
-        }
-      }
-    }
-  }
-
-  moveDown(board, carNumber) {
-    let carFront = undefined;
-    for (let row = 0; row < board.length; row++) {
-      for (let col = 0; col < board[row].length; col++) {
-        let element = board[row][col];
-        if (element === carNumber) {
-          const isAtTheBottom = row === board.length - 1 && board[row][col] === carNumber;
-          
-          if (isAtTheBottom || board[row + 1][col] === carNumber) {
-            carFront = { row, col };
-            continue;
-          }
-          if (!this.canMoveDown(board, carNumber)) return board;
-
-          board[carFront.row][carFront.col] = 0;
-          board[row + 1][col] = carNumber;
-          return board;
-        }
-      }
-    }
-    return board;
+  canMoveToLeft(board, row, col) {
+    return col > 0 && board[row][col - 1] === 0;
   }
 
   bfs(initialState) {
-    const queue = [initialState];
+    const queue = [new Path([new State(initialState)])];
     const seenStates = new Set();
     while (queue.length > 0) {
-      const state = queue.shift();
-      if (this.isGoalState(state)) {
-        return true;
+      const path = queue.shift();
+      const lastState = path.states[path.states.length - 1];
+      if (this.isGoalState(lastState.board)) {
+        return path.states.slice(1).map((state) => state.step);
       }
 
-      const nextStates = this.getNextStates(state);
+      const nextStates = this.getNextStates(lastState.board);
 
       for (const nextState of nextStates) {
-        if (!seenStates.has(this.createACopy(nextState))) {
-          seenStates.add(this.createACopy(state));
-          queue.push([...nextState]);
+        const stateAsHash = this.getHash(nextState.board);
+        if (!seenStates.has(stateAsHash)) {
+          seenStates.add(stateAsHash);
+          queue.push(new Path([...path.states, nextState]));
         }
       }
     }
-    return false;
+    return [];
+  }
+
+  getHash(state) {
+    let result = "";
+    for (let row = 0; row < state.length; row++) {
+      for (let col = 0; col < state[row].length; col++) {
+        result += `${state[row][col]}`;
+      }
+    }
+    return result;
   }
 
   isGoalState(state) {
@@ -251,62 +99,140 @@ class RushHour {
   }
 
   solve(initialBoard) {
-    const board = initialBoard;
-    const state = new State(board);
+    return this.bfs(initialBoard);
+  }
 
-    this.queue.push(state);
+  moveCarToRight(board, row, col, carNumber) {
+    if (this.canMoveToRight(board, row, col)) {
+      board[row][col + 1] = carNumber;
 
-    this.hasSolution = this.bfs(board);
+      if (board[row][col - 2] === carNumber) {
+        board[row][col - 2] = 0;
+      } else {
+        board[row][col - 1] = 0;
+      }
+      return board;
+    }
+    return null;
+  }
 
-    if (board[2][2] === 2 && board[2][3] === 2) {
-      return [];
+  moveCarToLeft(board, row, col, carNumber) {
+    if (this.canMoveToLeft(board, row, col)) {
+      board[row][col - 1] = carNumber;
+      if (board[row][col + 2] === carNumber) {
+        board[row][col + 2] = 0;
+      } else {
+        board[row][col + 1] = 0;
+      }
+
+      return board;
     }
-    if (board[2][2] === 2 && board[2][3] === 3) {
-      return { length: 6 };
+    return null;
+  }
+
+  moveCarUp(board, row, col, carNumber) {
+    if (this.canMoveUp(board, row, col)) {
+      if (board[row + 2] && board[row + 2][col] === carNumber) {
+        board[row + 2][col] = 0;
+      } else {
+        board[row + 1][col] = 0;
+      }
+
+      board[row - 1][col] = carNumber;
+      return board;
     }
-    if (board[2][2] === 4) {
-      return { length: 25 };
+    return null;
+  }
+
+  moveCarDown(board, row, col, carNumber) {
+    if (this.canMoveDown(board, row, col)) {
+      if (board[row - 2] && board[row - 2][col] === carNumber) {
+        board[row - 2][col] = 0;
+      } else {
+        board[row - 1][col] = 0;
+      }
+
+      board[row + 1][col] = carNumber;
+      return board;
     }
-    return { length: 2 };
+    return null;
   }
 
   getNextStates(initialBoard) {
     const states = [];
     if (this.hasAnotherHorizontalCarInFrontOfMain(initialBoard)) {
-      return states;
+      return [];
     }
     for (let row = 0; row < initialBoard.length; row++) {
       for (let col = 0; col < initialBoard[row].length; col++) {
         const carNumber = initialBoard[row][col];
 
-        if (this.isGoalState(initialBoard)) {
-          return states;
-        }
-
         if (this.isCar(carNumber)) {
-          const stateBoard = this.createACopy(initialBoard);
-
-          const orientation = this.getOrientation(stateBoard, carNumber);
+          const orientation = this.getOrientation(initialBoard, carNumber);
 
           if (orientation === this.HORIZONTAL) {
-            if (this.canMoveToRight(stateBoard, carNumber)) {
-              let boardMovedToRight = this.moveToRight(stateBoard, carNumber);
-              states.push(boardMovedToRight);
-              initialBoard = stateBoard;
-            } else if (this.canMoveToLeft(stateBoard, carNumber)) {
-              let boardMovedToLeft = this.moveToLeft(stateBoard, carNumber);
-              states.push(boardMovedToLeft);
-              initialBoard = stateBoard;
+            let board = this.createACopy(initialBoard);
+
+            let boardMovedToRight = this.moveCarToRight(
+              board,
+              row,
+              col,
+              carNumber
+            );
+
+            if (boardMovedToRight) {
+              states.push(
+                new State(
+                  boardMovedToRight,
+                  new Step(carNumber, movementDirection.right)
+                )
+              );
+            }
+            let boardMovedToLeft = this.moveCarToLeft(
+              this.createACopy(initialBoard),
+              row,
+              col,
+              carNumber
+            );
+
+            if (boardMovedToLeft) {
+              states.push(
+                new State(
+                  boardMovedToLeft,
+                  new Step(carNumber, movementDirection.left)
+                )
+              );
             }
           } else {
-            if (this.canMoveUp(stateBoard, carNumber)) {
-              let boardMovedUp = this.moveUp(stateBoard, carNumber);
-              states.push(boardMovedUp);
-              initialBoard = stateBoard;
-            } else if (this.canMoveDown(stateBoard, carNumber)) {
-              let boardMovedDown = this.moveDown(stateBoard, carNumber);
-              states.push(boardMovedDown);
-              initialBoard = stateBoard;
+            let boardMovedUp = this.moveCarUp(
+              this.createACopy(initialBoard),
+              row,
+              col,
+              carNumber
+            );
+
+            if (boardMovedUp) {
+              states.push(
+                new State(
+                  boardMovedUp,
+                  new Step(carNumber, movementDirection.up)
+                )
+              );
+            }
+
+            let boardMovedDown = this.moveCarDown(
+              this.createACopy(initialBoard),
+              row,
+              col,
+              carNumber
+            );
+            if (boardMovedDown) {
+              states.push(
+                new State(
+                  boardMovedDown,
+                  new Step(carNumber, movementDirection.down)
+                )
+              );
             }
           }
         }
