@@ -23,6 +23,8 @@ describe("Rush Hour test", () => {
         [0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0],
       ],
+      1,
+      4,
       mainCar
     );
 

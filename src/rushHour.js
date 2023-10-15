@@ -1,4 +1,3 @@
-const { Queue } = require("./queue");
 const movementDirection = require("./movementDirection");
 
 class Step {
@@ -27,22 +26,15 @@ class RushHour {
   HORIZONTAL = "horizontal";
   VERTICAL = "vertical";
 
-  queue = new Queue();
+  getOrientation(board, row, col, carNumber) {
+    let nextCol = board[row][col + 1];
+    let lastCol = board[row][col - 1];
 
-  getOrientation(board, carNumber) {
-    for (let row = 0; row < board.length; row++) {
-      for (let col = 0; col < board[row].length; col++) {
-        const element = board[row][col];
-        if (element === carNumber) {
-          let nextCol = board[row][col + 1];
-
-          if (nextCol === carNumber) {
-            return this.HORIZONTAL;
-          }
-          return this.VERTICAL;
-        }
-      }
+    if (nextCol === carNumber ||
+        lastCol === carNumber) {
+      return this.HORIZONTAL;
     }
+    return this.VERTICAL;
   }
 
   canMoveUp(board, row, col) {
@@ -160,15 +152,12 @@ class RushHour {
 
   getNextStates(initialBoard) {
     const states = [];
-    if (this.hasAnotherHorizontalCarInFrontOfMain(initialBoard)) {
-      return [];
-    }
     for (let row = 0; row < initialBoard.length; row++) {
       for (let col = 0; col < initialBoard[row].length; col++) {
         const carNumber = initialBoard[row][col];
 
         if (this.isCar(carNumber)) {
-          const orientation = this.getOrientation(initialBoard, carNumber);
+          const orientation = this.getOrientation(initialBoard, row, col, carNumber);
 
           if (orientation === this.HORIZONTAL) {
             let board = this.createACopy(initialBoard);
@@ -240,22 +229,6 @@ class RushHour {
     }
 
     return states;
-  }
-
-  hasAnotherHorizontalCarInFrontOfMain(state) {
-    for (let row = 0; row < state.length; row++) {
-      for (let col = 0; col < state[row].length; col++) {
-        const isMainCar = state[row][col] === this.MAIN_CAR;
-        const nextCol = state[row][col + 1];
-        const nextColIsAnotherCar = nextCol > 1;
-
-        if (isMainCar && nextColIsAnotherCar) {
-          const orientation = this.getOrientation(state, nextCol);
-          return orientation === this.HORIZONTAL;
-        }
-      }
-    }
-    return false;
   }
 
   isCar(element) {
