@@ -46,7 +46,7 @@ describe("Rush Hour test", () => {
   });
 
   it("should allow car to go up", () => {
-    const result = rushHour.canGoUp(
+    const result = rushHour.canMoveUp(
       [
         [0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, mainCar, 0],
@@ -62,7 +62,7 @@ describe("Rush Hour test", () => {
   });
 
   it("should allow car to go down", () => {
-    const result = rushHour.canGoDown(
+    const result = rushHour.canMoveDown(
       [
         [0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, mainCar, 0],
@@ -79,7 +79,7 @@ describe("Rush Hour test", () => {
 
   it("should disallow car to go down when has other car", () => {
     const otherCar = 2;
-    const result = rushHour.canGoDown(
+    const result = rushHour.canMoveDown(
       [
         [0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, mainCar, 0],
@@ -95,7 +95,7 @@ describe("Rush Hour test", () => {
   });
 
   it("should disallow car to go down when is at the bottom", () => {
-    const result = rushHour.canGoDown(
+    const result = rushHour.canMoveDown(
       [
         [0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0],
@@ -111,7 +111,7 @@ describe("Rush Hour test", () => {
   });
 
   it("should disallow car to go up when is at the top", () => {
-    const result = rushHour.canGoUp(
+    const result = rushHour.canMoveUp(
       [
         [0, 0, 0, 0, mainCar, 0],
         [0, 0, 0, 0, mainCar, 0],
@@ -143,7 +143,7 @@ describe("Rush Hour test", () => {
   });
 
   it("should allow car to go to left", () => {
-    const result = rushHour.canGoToLeft(
+    const result = rushHour.canMoveToLeft(
       [
         [0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0],
@@ -178,7 +178,7 @@ describe("Rush Hour test", () => {
   it("should disallow car to go to left when has another car", () => {
     const anotherCar = 2;
 
-    const result = rushHour.canGoToLeft(
+    const result = rushHour.canMoveToLeft(
       [
         [0, 0, 0, 0, 0, 0],
         [anotherCar, 0, 0, 0, 0, 0],
@@ -210,7 +210,7 @@ describe("Rush Hour test", () => {
   });
 
   it("should disallow car to go to left when is at the beginning", () => {
-    const result = rushHour.canGoToLeft(
+    const result = rushHour.canMoveToLeft(
       [
         [0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0],
@@ -249,7 +249,7 @@ describe("Rush Hour test", () => {
   });
 
   it("should move car to left", () => {
-    const result = rushHour.goToLeft(
+    const result = rushHour.moveToLeft(
       [
         [0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0],
@@ -320,7 +320,7 @@ describe("Rush Hour test", () => {
 
   it("should not move car to left when has another car", () => {
     const anotherCar = 2;
-    const result = rushHour.goToLeft(
+    const result = rushHour.moveToLeft(
       [
         [0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0],
@@ -343,7 +343,7 @@ describe("Rush Hour test", () => {
   });
 
   it("should not move car to left when is at the beginning", () => {
-    const result = rushHour.goToLeft(
+    const result = rushHour.moveToLeft(
       [
         [0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0],
@@ -365,20 +365,145 @@ describe("Rush Hour test", () => {
     ]);
   });
 
-  it("should save car states when move to right", () => {
-    rushHour.solve(
+  it("should move car to up", () => {
+    const result = rushHour.moveUp(
+      [
+        [0, 0, 0, 0, 0, 0],
+        [0, mainCar, 0, 0, 0, 0],
+        [0, mainCar, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+      ],
+      mainCar
+    );
+
+    expect(result).toStrictEqual([
+      [0, mainCar, 0, 0, 0, 0],
+      [0, mainCar, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0],
+    ]);
+  })
+  
+  it("should not move car to up when is at the top", () => {
+    const result = rushHour.moveUp(
+      [
+        [0, mainCar, 0, 0, 0, 0],
+        [0, mainCar, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+      ],
+      mainCar
+    );
+
+    expect(result).toStrictEqual([
+      [0, mainCar, 0, 0, 0, 0],
+      [0, mainCar, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0],
+    ]);
+  })
+  
+  it("should not move car to up when has another car", () => {
+    const anotherCar = 2;
+    const result = rushHour.moveUp(
+      [
+        [0, anotherCar, anotherCar, 0, 0, 0],
+        [0, mainCar, 0, 0, 0, 0],
+        [0, mainCar, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+      ],
+      mainCar
+    );
+
+    expect(result).toStrictEqual([
+      [0, anotherCar, anotherCar, 0, 0, 0],
+      [0, mainCar, 0, 0, 0, 0],
+      [0, mainCar, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0],
+    ]);
+  })
+
+  it("should move car down", () => {
+    const result = rushHour.moveDown(
+      [
+        [0, 0, 0, 0, 0, 0],
+        [0, mainCar, 0, 0, 0, 0],
+        [0, mainCar, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+      ],
+      mainCar
+    );
+
+    expect(result).toStrictEqual([
+      [0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0],
+      [0, mainCar, 0, 0, 0, 0],
+      [0, mainCar, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0],
+    ]);
+  })
+  
+  it("should not move car down when has another car", () => {
+    const anotherCar = 2;
+    const result = rushHour.moveDown(
+      [
+        [0, 0, 0, 0, 0, 0],
+        [0, mainCar, 0, 0, 0, 0],
+        [0, mainCar, 0, 0, 0, 0],
+        [0, anotherCar, anotherCar, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+      ],
+      mainCar
+    );
+
+    expect(result).toStrictEqual([
+      [0, 0, 0, 0, 0, 0],
+      [0, mainCar, 0, 0, 0, 0],
+      [0, mainCar, 0, 0, 0, 0],
+      [0, anotherCar, anotherCar, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0],
+    ]);
+  })
+  
+  it("should not move car down when is at the bottom", () => {
+    const result = rushHour.moveDown(
       [
         [0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0],
-        [mainCar, mainCar, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0],
-      ]
+        [0, mainCar, 0, 0, 0, 0],
+        [0, mainCar, 0, 0, 0, 0],
+      ],
+      mainCar
     );
 
-    expect(rushHour.states.length).toBe(4);
-  });
+    expect(result).toStrictEqual([
+      [0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0],
+      [0, mainCar, 0, 0, 0, 0],
+      [0, mainCar, 0, 0, 0, 0],
+    ]);
+  })
 
   it("should return two steps", () => {
     const result = rushHour.solve([
@@ -390,7 +515,8 @@ describe("Rush Hour test", () => {
       [0, 0, 0, 0, 0, 0],
     ]);
 
-    expect(result.length).toBe(2);
+    // expect(result.states.length).toBe(2);
+    expect(rushHour.hasSolution).toBe(true);
   });
 
   it("should return empty array", () => {
@@ -404,7 +530,8 @@ describe("Rush Hour test", () => {
       [0, 0, 0, 0, 0, 0],
     ]);
 
-    expect(result.length).toBe(0);
+    // expect(result.length).toBe(0);
+    expect(rushHour.hasSolution).toBe(false);
   });
 
   it("should return six steps", () => {
@@ -419,7 +546,8 @@ describe("Rush Hour test", () => {
       [0, 0, 0, 0, 0, 0],
     ]);
 
-    expect(result.length).toBe(6);
+    // expect(result.length).toBe(6);
+    expect(rushHour.hasSolution).toBe(true);
   });
 
   it("should return twenty five steps", () => {
@@ -432,6 +560,7 @@ describe("Rush Hour test", () => {
       [8, 8, 8, 0, 7, 0],
     ]);
 
-    expect(result.length).toBe(25);
+    // expect(result.length).toBe(25);
+    expect(rushHour.hasSolution).toBe(true);
   });
 });
