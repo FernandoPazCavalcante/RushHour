@@ -28,78 +28,89 @@ contract RushHourSolver {
     }
 
     struct Path {
-        State[] states;
+        State lastState;
+        Step[] steps;
     }
 
     function helloWorld() public pure returns (string memory) {
         return "Hello world";
     }
 
-    uint8 MAIN_CAR = 1;
-    uint8 MAX_INDEX = 5;
-
     function solve(
         uint8[6][6] memory board
     ) external view returns (Step[] memory) {
-        Path[] memory queue = new Path[](100);
-        State[] memory initialStates = new State[](1);
-        initialStates[0] = State(board, Step(0, MovementDirection.None));
-        Path memory initialPath = Path(initialStates);
+        return bfs(board);
+    }
+
+    function bfs(
+        uint8[6][6] memory board
+    ) private view returns (Step[] memory) {
+        Path[] memory queue = new Path[](1000);
+        State memory initialState = State(
+            board,
+            Step(0, MovementDirection.None)
+        );
+        Step[] memory initialSteps = new Step[](1);
+        initialSteps[0] = Step(0, MovementDirection.None);
+
+        Path memory initialPath = Path(initialState, initialSteps);
+
         queue[0] = initialPath;
 
-        bytes32[] memory seenStates = new bytes32[](100);
+        bytes32[] memory seenStates = new bytes32[](1300);
 
         uint256 queueSize = 1;
         uint256 seenStatesSize = 0;
         uint256 nextQueueItem = 0;
 
         while (queueSize > nextQueueItem) {
-            Path memory path = queue[nextQueueItem];
-            nextQueueItem++;
-            console.log("queueSize: ", queueSize);
-            console.log("nextQueueItem: ", nextQueueItem);
-            State memory lastState = path.states[path.states.length - 1];
+            console.log("------------------------");
+            console.log("gasLeft: ", gasleft());
+            console.log(nextQueueItem);
+            // Path memory path = queue[nextQueueItem];
+            // State memory lastState = queue[nextQueueItem].lastState;
 
-            if (isGoalState(lastState.board)) {
-                console.log("solution found");
-                return getStatesSteps(path.states);
+            console.log("isGoalState gasLeft: ", gasleft());
+            if (isGoalState(queue[nextQueueItem].lastState.board)) {
+                console.log("achieve goal state");
+
+                return queue[nextQueueItem].steps;
             }
 
-            State[] memory nextStates = getNextStates(lastState.board);
-
-            console.log("nextStates.length: ", nextStates.length);
+            console.log("getNextStates gasLeft: ", gasleft());
+            State[] memory nextStates = getNextStates(
+                queue[nextQueueItem].lastState.board
+            );
 
             for (uint8 i = 0; i < nextStates.length; i++) {
-                console.log(i);
-                printState(nextStates[i]);
                 bytes32 stateAsHash = getHash(nextStates[i].board);
 
                 if (!stateAsHashExists(seenStates, stateAsHash)) {
-                    console.log("!stateAsHashExists");
+                    printState(nextStates[i]);
                     seenStates[seenStatesSize] = stateAsHash;
                     seenStatesSize++;
 
-                    State[] memory states = new State[](path.states.length + 1);
+                    Step[] memory steps = new Step[](
+                        queue[nextQueueItem].steps.length + 1
+                    );
 
                     for (
                         uint256 index = 0;
-                        index < path.states.length;
+                        index < queue[nextQueueItem].steps.length;
                         index++
                     ) {
-                        states[index] = path.states[index];
+                        steps[index] = queue[nextQueueItem].steps[index];
                     }
-                    states[path.states.length] = nextStates[i];
+                    steps[queue[nextQueueItem].steps.length] = nextStates[i]
+                        .step;
 
-                    queue[queueSize] = Path(states);
+                    queue[queueSize] = Path(nextStates[i], steps);
                     queueSize++;
-                } else {
-                    console.log("stateAsHashExists");
                 }
             }
-
-            console.log("final nextQueueItem: ", nextQueueItem);
-            console.log("final queueSize: ", queueSize);
-            console.log("-----------------------");
+            nextQueueItem++;
+            console.log("nextStates.length: ", nextStates.length);
+            console.log("------------------------");
         }
         return new Step[](0);
     }
@@ -118,8 +129,8 @@ contract RushHourSolver {
         console.log("");
     }
 
-    function isGoalState(uint8[6][6] memory board) private view returns (bool) {
-        return board[2][5] == MAIN_CAR;
+    function isGoalState(uint8[6][6] memory board) private pure returns (bool) {
+        return board[2][5] == 1;
     }
 
     function getStatesSteps(
@@ -135,7 +146,9 @@ contract RushHourSolver {
     function getNextStates(
         uint8[6][6] memory initialBoard
     ) private view returns (State[] memory) {
-        State[] memory states = new State[](30);
+        State[] memory states = new State[](13);
+
+        console.log("getNextStates: ", gasleft());
 
         uint stateCount = 0;
         for (uint8 row = 0; row < 6; row++) {
@@ -143,6 +156,7 @@ contract RushHourSolver {
                 uint8 carNumber = initialBoard[row][col];
 
                 if (isCar(carNumber)) {
+                    console.log("is car: ", gasleft());
                     Orientation orientation = getOrientation(
                         initialBoard,
                         row,
@@ -151,10 +165,12 @@ contract RushHourSolver {
                     );
 
                     if (orientation == Orientation.Horizontal) {
+                        console.log("moving horizontal: ", gasleft());
                         bool boardChanged = false;
                         uint8[6][6] memory boardMovedToRight;
+
                         (boardMovedToRight, boardChanged) = moveCarToRight(
-                            copyBoard(initialBoard),
+                            initialBoard,
                             row,
                             col,
                             carNumber
@@ -169,7 +185,7 @@ contract RushHourSolver {
 
                         uint8[6][6] memory boardMovedToLeft;
                         (boardMovedToLeft, boardChanged) = moveCarToLeft(
-                            copyBoard(initialBoard),
+                            initialBoard,
                             row,
                             col,
                             carNumber
@@ -185,8 +201,9 @@ contract RushHourSolver {
                         bool boardChanged;
 
                         uint8[6][6] memory boardMovedUp;
+
                         (boardMovedUp, boardChanged) = moveCarUp(
-                            copyBoard(initialBoard),
+                            initialBoard,
                             row,
                             col,
                             carNumber
@@ -200,7 +217,7 @@ contract RushHourSolver {
                         }
                         uint8[6][6] memory boardMovedDown;
                         (boardMovedDown, boardChanged) = moveCarDown(
-                            copyBoard(initialBoard),
+                            initialBoard,
                             row,
                             col,
                             carNumber
@@ -269,16 +286,18 @@ contract RushHourSolver {
         uint8 row,
         uint8 col,
         uint8 carNumber
-    ) internal view returns (uint8[6][6] memory, bool) {
+    ) internal pure returns (uint8[6][6] memory, bool) {
         if (canMoveToRight(board, row, col)) {
-            board[row][col + 1] = carNumber;
+            uint8[6][6] memory boardCopied = copyBoard(board);
 
-            if (col > 1 && board[row][col - 2] == carNumber) {
-                board[row][col - 2] = 0;
+            boardCopied[row][col + 1] = carNumber;
+
+            if (col > 1 && boardCopied[row][col - 2] == carNumber) {
+                boardCopied[row][col - 2] = 0;
             } else {
-                board[row][col - 1] = 0;
+                boardCopied[row][col - 1] = 0;
             }
-            return (board, true);
+            return (boardCopied, true);
         }
         return (board, false);
     }
@@ -287,8 +306,8 @@ contract RushHourSolver {
         uint8[6][6] memory board,
         uint8 row,
         uint8 col
-    ) private view returns (bool) {
-        return col < MAX_INDEX && board[row][col + 1] == 0;
+    ) private pure returns (bool) {
+        return col < 5 && board[row][col + 1] == 0;
     }
 
     function moveCarToLeft(
@@ -298,14 +317,16 @@ contract RushHourSolver {
         uint8 carNumber
     ) internal pure returns (uint8[6][6] memory, bool) {
         if (canMoveToLeft(board, row, col)) {
-            board[row][col - 1] = carNumber;
-            if (col < 4 && board[row][col + 2] == carNumber) {
-                board[row][col + 2] = 0;
+            uint8[6][6] memory boardCopied = copyBoard(board);
+
+            boardCopied[row][col - 1] = carNumber;
+            if (col < 4 && boardCopied[row][col + 2] == carNumber) {
+                boardCopied[row][col + 2] = 0;
             } else {
-                board[row][col + 1] = 0;
+                boardCopied[row][col + 1] = 0;
             }
 
-            return (board, true);
+            return (boardCopied, true);
         }
         return (board, false);
     }
@@ -325,14 +346,16 @@ contract RushHourSolver {
         uint8 carNumber
     ) internal pure returns (uint8[6][6] memory, bool) {
         if (canMoveUp(board, row, col)) {
-            if (row < 4 && board[row + 2][col] == carNumber) {
-                board[row + 2][col] = 0;
+            uint8[6][6] memory boardCopied = copyBoard(board);
+
+            if (row < 4 && boardCopied[row + 2][col] == carNumber) {
+                boardCopied[row + 2][col] = 0;
             } else {
-                board[row + 1][col] = 0;
+                boardCopied[row + 1][col] = 0;
             }
 
-            board[row - 1][col] = carNumber;
-            return (board, true);
+            boardCopied[row - 1][col] = carNumber;
+            return (boardCopied, true);
         }
         return (board, false);
     }
@@ -352,14 +375,16 @@ contract RushHourSolver {
         uint8 carNumber
     ) internal view returns (uint8[6][6] memory, bool) {
         if (canMoveDown(board, row, col)) {
-            if (row > 1 && board[row - 2][col] == carNumber) {
-                board[row - 2][col] = 0;
+            uint8[6][6] memory boardCopied = copyBoard(board);
+
+            if (row > 1 && boardCopied[row - 2][col] == carNumber) {
+                boardCopied[row - 2][col] = 0;
             } else {
-                board[row - 1][col] = 0;
+                boardCopied[row - 1][col] = 0;
             }
 
-            board[row + 1][col] = carNumber;
-            return (board, true);
+            boardCopied[row + 1][col] = carNumber;
+            return (boardCopied, true);
         }
         return (board, false);
     }
@@ -369,35 +394,11 @@ contract RushHourSolver {
         uint8 row,
         uint8 col
     ) private view returns (bool) {
-        return row < MAX_INDEX && board[row + 1][col] == 0;
-    }
-
-    function isBoardDifferent(
-        uint8[6][6] memory board1,
-        uint8[6][6] memory board2
-    ) internal pure returns (bool) {
-        for (uint8 row = 0; row < 6; row++) {
-            for (uint8 col = 0; col < 6; col++) {
-                if (board1[row][col] != board2[row][col]) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return row < 5 && board[row + 1][col] == 0;
     }
 
     function getHash(uint8[6][6] memory board) private pure returns (bytes32) {
-        string memory result = "";
-
-        for (uint row = 0; row < board.length; row++) {
-            for (uint col = 0; col < board[row].length; col++) {
-                result = string.concat(
-                    result,
-                    Strings.toString(board[row][col])
-                );
-            }
-        }
-        return keccak256(abi.encodePacked(result));
+        return keccak256(abi.encode(board));
     }
 
     function stateAsHashExists(
