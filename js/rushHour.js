@@ -60,14 +60,15 @@ class RushHour {
       const path = queue.shift();
       const lastState = path.states[path.states.length - 1];
 
+      if (this.isGoalState(lastState.board)) {
+        return path.states.slice(1).map((state) => state.step);
+      }
+
       const nextStates = this.getNextStates(lastState.board);
 
       for (const nextState of nextStates) {
         const stateAsHash = this.getHash(nextState.board);
         if (!seenStates.has(stateAsHash)) {
-          if (this.isGoalState(lastState.board)) {
-            return path.states.slice(1).map((state) => state.step);
-          }
           seenStates.add(stateAsHash);
           queue.push(new Path([...path.states, nextState]));
         }

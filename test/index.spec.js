@@ -9,12 +9,12 @@ describe("Rush Hour test", () => {
     rushHour = new RushHour();
   });
 
-  it.skip("should instantiate", () => {
+  it("should instantiate", () => {
     let rushHour = new RushHour();
     expect(!!rushHour).to.be.true;
   });
 
-  it.skip("should identify car as vertical orientation", () => {
+  it("should identify car as vertical orientation", () => {
     const result = rushHour.getOrientation(
       [
         [0, 0, 0, 0, 0, 0],
@@ -32,7 +32,7 @@ describe("Rush Hour test", () => {
     expect(result).to.be.equal("vertical");
   });
 
-  it.skip("should identify car as horizontal", () => {
+  it("should identify car as horizontal", () => {
     const result = rushHour.getOrientation(
       [
         [0, 0, 0, 0, 0, 0],
@@ -48,7 +48,7 @@ describe("Rush Hour test", () => {
     expect(result).to.be.equal("horizontal");
   });
 
-  it.skip("should allow car to go up", () => {
+  it("should allow car to go up", () => {
     const result = rushHour.canMoveUp(
       [
         [0, 0, 0, 0, 0, 0],
@@ -66,7 +66,7 @@ describe("Rush Hour test", () => {
     expect(result).to.be.equal(true);
   });
 
-  it.skip("should allow car to go down", () => {
+  it("should allow car to go down", () => {
     const result = rushHour.canMoveDown(
       [
         [0, 0, 0, 0, 0, 0],
@@ -84,7 +84,7 @@ describe("Rush Hour test", () => {
     expect(result).to.be.equal(true);
   });
 
-  it.skip("should disallow car to go down when has other car", () => {
+  it("should disallow car to go down when has other car", () => {
     const otherCar = 2;
     const result = rushHour.canMoveDown(
       [
@@ -103,7 +103,7 @@ describe("Rush Hour test", () => {
     expect(result).to.be.equal(false);
   });
 
-  it.skip("should disallow car to go down when is at the bottom", () => {
+  it("should disallow car to go down when is at the bottom", () => {
     const result = rushHour.canMoveDown(
       [
         [0, 0, 0, 0, 0, 0],
@@ -121,7 +121,7 @@ describe("Rush Hour test", () => {
     expect(result).to.be.equal(false);
   });
 
-  it.skip("should disallow car to go up when is at the top", () => {
+  it("should disallow car to go up when is at the top", () => {
     const result = rushHour.canMoveUp(
       [
         [0, 0, 0, 0, mainCar, 0],
@@ -139,7 +139,7 @@ describe("Rush Hour test", () => {
     expect(result).to.be.equal(false);
   });
 
-  it.skip("should allow car to go to right", () => {
+  it("should allow car to go to right", () => {
     const result = rushHour.canMoveToRight(
       [
         [0, 0, 0, 0, 0, 0],
@@ -156,7 +156,7 @@ describe("Rush Hour test", () => {
     expect(result).to.be.equal(true);
   });
 
-  it.skip("should allow car to go to left", () => {
+  it("should allow car to go to left", () => {
     const result = rushHour.canMoveToLeft(
       [
         [0, 0, 0, 0, 0, 0],
@@ -173,7 +173,7 @@ describe("Rush Hour test", () => {
     expect(result).to.be.equal(true);
   });
 
-  it.skip("should disallow car to go to right when has another car", () => {
+  it("should disallow car to go to right when has another car", () => {
     const anotherCar = 2;
     const result = rushHour.canMoveToRight(
       [
@@ -192,7 +192,7 @@ describe("Rush Hour test", () => {
     expect(result).to.be.equal(false);
   });
 
-  it.skip("should disallow car to go to left when has another car", () => {
+  it("should disallow car to go to left when has another car", () => {
     const anotherCar = 2;
 
     const result = rushHour.canMoveToLeft(
@@ -212,7 +212,7 @@ describe("Rush Hour test", () => {
     expect(result).to.be.equal(false);
   });
 
-  it.skip("should disallow car to go to right when is at the end", () => {
+  it("should disallow car to go to right when is at the end", () => {
     const result = rushHour.canMoveToRight(
       [
         [0, 0, 0, 0, 0, 0],
@@ -230,7 +230,7 @@ describe("Rush Hour test", () => {
     expect(result).to.be.equal(false);
   });
 
-  it.skip("should disallow car to go to left when is at the beginning", () => {
+  it("should disallow car to go to left when is at the beginning", () => {
     const result = rushHour.canMoveToLeft(
       [
         [0, 0, 0, 0, 0, 0],
@@ -248,7 +248,7 @@ describe("Rush Hour test", () => {
     expect(result).to.be.equal(false);
   });
 
-  it.skip("should move car to right", () => {
+  it("should move car to right", () => {
     const result = rushHour.moveCarToRight(
       [
         [0, 0, 0, 0, 0, 0],
@@ -273,7 +273,7 @@ describe("Rush Hour test", () => {
     ]);
   });
 
-  it.skip("should not move car to right when has another car", () => {
+  it("should not move car to right when has another car", () => {
     const anotherCar = 2;
     const result = rushHour.moveCarToRight(
       [
@@ -292,7 +292,7 @@ describe("Rush Hour test", () => {
     expect(result).to.be.null;
   });
 
-  it.skip("should not move car to right when is at the end", () => {
+  it("should not move car to right when is at the end", () => {
     const result = rushHour.moveCarToRight(
       [
         [0, 0, 0, 0, 0, 0],
@@ -310,7 +310,7 @@ describe("Rush Hour test", () => {
     expect(result).to.be.null;
   });
 
-  it.skip("should not move car to left when has another car", () => {
+  it("should not move car to left when has another car", () => {
     const anotherCar = 2;
     const result = rushHour.moveCarToLeft(
       [
@@ -329,7 +329,7 @@ describe("Rush Hour test", () => {
     expect(result).to.be.null;
   });
 
-  it.skip("should not move car to left when is at the beginning", () => {
+  it("should not move car to left when is at the beginning", () => {
     const result = rushHour.moveCarToLeft(
       [
         [0, 0, 0, 0, 0, 0],
@@ -347,7 +347,7 @@ describe("Rush Hour test", () => {
     expect(result).to.be.null;
   });
 
-  it.skip("should not move car to up when is at the top", () => {
+  it("should not move car to up when is at the top", () => {
     const result = rushHour.moveCarUp(
       [
         [0, mainCar, 0, 0, 0, 0],
@@ -365,7 +365,7 @@ describe("Rush Hour test", () => {
     expect(result).to.be.null;
   });
 
-  it.skip("should not move car to up when has another car", () => {
+  it("should not move car to up when has another car", () => {
     const anotherCar = 2;
     const result = rushHour.moveCarUp(
       [
@@ -384,7 +384,7 @@ describe("Rush Hour test", () => {
     expect(result).to.be.null;
   });
 
-  it.skip("should not move car down when has another car", () => {
+  it("should not move car down when has another car", () => {
     const anotherCar = 2;
     const result = rushHour.moveCarDown(
       [
@@ -403,7 +403,7 @@ describe("Rush Hour test", () => {
     expect(result).to.be.null;
   });
 
-  it.skip("should not move car down when is at the bottom", () => {
+  it("should not move car down when is at the bottom", () => {
     const result = rushHour.moveCarDown(
       [
         [0, 0, 0, 0, 0, 0],
@@ -421,7 +421,7 @@ describe("Rush Hour test", () => {
     expect(result).to.be.null;
   });
 
-  it.skip("should move car to right", () => {
+  it("should move car to right", () => {
     const result = rushHour.moveCarToRight(
       [
         [0, 0, 0, 0, 0, 0],
@@ -446,7 +446,7 @@ describe("Rush Hour test", () => {
     ]);
   });
 
-  it.skip("should move truck to right", () => {
+  it("should move truck to right", () => {
     const result = rushHour.moveCarToRight(
       [
         [0, 0, 0, 0, 0, 0],
@@ -471,7 +471,7 @@ describe("Rush Hour test", () => {
     ]);
   });
 
-  it.skip("should move car to left", () => {
+  it("should move car to left", () => {
     const result = rushHour.moveCarToLeft(
       [
         [0, 0, 0, 0, 0, 0],
@@ -496,7 +496,7 @@ describe("Rush Hour test", () => {
     ]);
   });
 
-  it.skip("should move truck to left", () => {
+  it("should move truck to left", () => {
     const result = rushHour.moveCarToLeft(
       [
         [0, 0, 0, 0, 0, 0],
@@ -521,7 +521,7 @@ describe("Rush Hour test", () => {
     ]);
   });
 
-  it.skip("should move car up", () => {
+  it("should move car up", () => {
     const result = rushHour.moveCarUp(
       [
         [0, 0, 0, 0, 0, 0],
@@ -546,7 +546,7 @@ describe("Rush Hour test", () => {
     ]);
   });
 
-  it.skip("should move truck up", () => {
+  it("should move truck up", () => {
     const result = rushHour.moveCarUp(
       [
         [0, 0, 0, 0, 0, 0],
@@ -571,7 +571,7 @@ describe("Rush Hour test", () => {
     ]);
   });
 
-  it.skip("should move car down", () => {
+  it("should move car down", () => {
     const result = rushHour.moveCarDown(
       [
         [0, 0, 0, 0, 0, 0],
@@ -596,7 +596,7 @@ describe("Rush Hour test", () => {
     ]);
   });
 
-  it.skip("should move truck down", () => {
+  it("should move truck down", () => {
     const result = rushHour.moveCarDown(
       [
         [0, 0, 0, 0, 0, 0],
@@ -621,7 +621,7 @@ describe("Rush Hour test", () => {
     ]);
   });
 
-  it.skip("should return two steps", () => {
+  it("should return two steps", () => {
     const result = rushHour.solve([
       [0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0],
@@ -634,7 +634,7 @@ describe("Rush Hour test", () => {
     expect(result.length).to.be.equal(2);
   });
 
-  it.skip("should return empty array", () => {
+  it("should return empty array", () => {
     const anotherCar = 2;
     const result = rushHour.solve([
       [0, 0, 0, 0, 0, 0],
@@ -648,7 +648,7 @@ describe("Rush Hour test", () => {
     expect(result.length).to.be.equal(0);
   });
 
-  it.skip("should return six steps", () => {
+  it("should return six steps", () => {
     const secondCar = 2;
     const thirdCard = 3;
     const result = rushHour.solve([
@@ -663,7 +663,7 @@ describe("Rush Hour test", () => {
     expect(result.length).to.be.equal(6);
   });
 
-  it.skip("should return twenty five steps", () => {
+  it("should return twenty five steps", () => {
     const result = rushHour.solve([
       [2, 2, 2, 0, 0, 3],
       [0, 0, 4, 0, 0, 3],
@@ -676,7 +676,7 @@ describe("Rush Hour test", () => {
     expect(result.length).to.be.equal(25);
   });
 
-  it.skip("should return ninety three steps", () => {
+  it("should return ninety three steps", () => {
     const result = rushHour.solve([
       [7, 7, 7, 4, 5, 6],
       [8, 9, 9, 4, 5, 6],
