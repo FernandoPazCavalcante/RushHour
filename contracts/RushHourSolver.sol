@@ -84,7 +84,6 @@ contract RushHourSolver {
             getNextStates(queue[nextQueueItem].lastState.board, neighbor);
 
             for (uint8 i = 0; i < neighbor.movesFound; i++) {
-                console.log("Adding state");
                 printState(neighbor.states[i]);
                 bytes32 stateAsHash = getHash(neighbor.states[i].board);
 
@@ -93,8 +92,6 @@ contract RushHourSolver {
                     seenStatesSize++;
 
                     if (isGoalState(queue[nextQueueItem].lastState.board)) {
-                        console.log("achieve goal state");
-
                         for (
                             uint256 index = 1;
                             index < queue[nextQueueItem].steps.length;
@@ -168,7 +165,6 @@ contract RushHourSolver {
         uint8[6][6] memory initialBoard,
         Neighbor memory neighbor
     ) private view {
-        console.log("getNextStates: ", gasleft());
         neighbor.movesFound = 0;
 
         for (uint8 row = 0; row < 6; row++) {

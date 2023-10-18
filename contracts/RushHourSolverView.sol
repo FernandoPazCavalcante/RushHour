@@ -50,9 +50,7 @@ contract RushHourSolverView {
             board,
             Step(0, MovementDirection.None)
         );
-        Step[] memory initialSteps = new Step[](1);
-        initialSteps[0] = Step(0, MovementDirection.None);
-
+        Step[] memory initialSteps = new Step[](0);
         Path memory initialPath = Path(initialState, initialSteps);
 
         queue[0] = initialPath;
@@ -63,21 +61,9 @@ contract RushHourSolverView {
         uint256 seenStatesSize = 0;
         uint256 nextQueueItem = 0;
 
+        console.log("begin gasLeft: ", gasleft());
+
         while (queueSize > nextQueueItem) {
-            console.log("------------------------");
-            console.log("gasLeft: ", gasleft());
-            console.log(nextQueueItem);
-            // Path memory path = queue[nextQueueItem];
-            // State memory lastState = queue[nextQueueItem].lastState;
-
-            console.log("isGoalState gasLeft: ", gasleft());
-            if (isGoalState(queue[nextQueueItem].lastState.board)) {
-                console.log("achieve goal state");
-
-                return queue[nextQueueItem].steps;
-            }
-
-            console.log("getNextStates gasLeft: ", gasleft());
             State[] memory nextStates = getNextStates(
                 queue[nextQueueItem].lastState.board
             );
@@ -85,8 +71,12 @@ contract RushHourSolverView {
             for (uint8 i = 0; i < nextStates.length; i++) {
                 bytes32 stateAsHash = getHash(nextStates[i].board);
 
+                if (isGoalState(queue[nextQueueItem].lastState.board)) {
+                    console.log("end gasLeft: ", gasleft());
+                    return queue[nextQueueItem].steps;
+                }
+
                 if (!stateAsHashExists(seenStates, stateAsHash)) {
-                    printState(nextStates[i]);
                     seenStates[seenStatesSize] = stateAsHash;
                     seenStatesSize++;
 
@@ -109,9 +99,8 @@ contract RushHourSolverView {
                 }
             }
             nextQueueItem++;
-            console.log("nextStates.length: ", nextStates.length);
-            console.log("------------------------");
         }
+        console.log("end gasLeft: ", gasleft());
         return new Step[](0);
     }
 
@@ -148,15 +137,12 @@ contract RushHourSolverView {
     ) private view returns (State[] memory) {
         State[] memory states = new State[](13);
 
-        console.log("getNextStates: ", gasleft());
-
         uint stateCount = 0;
         for (uint8 row = 0; row < 6; row++) {
             for (uint8 col = 0; col < 6; col++) {
                 uint8 carNumber = initialBoard[row][col];
 
                 if (isCar(carNumber)) {
-                    console.log("is car: ", gasleft());
                     Orientation orientation = getOrientation(
                         initialBoard,
                         row,
@@ -165,7 +151,6 @@ contract RushHourSolverView {
                     );
 
                     if (orientation == Orientation.Horizontal) {
-                        console.log("moving horizontal: ", gasleft());
                         bool boardChanged = false;
                         uint8[6][6] memory boardMovedToRight;
 
@@ -234,11 +219,6 @@ contract RushHourSolverView {
             }
         }
 
-        uint statesToDelete = states.length - stateCount;
-
-        assembly {
-            mstore(states, sub(mload(states), statesToDelete))
-        }
         return states;
     }
 
@@ -393,7 +373,7 @@ contract RushHourSolverView {
         uint8[6][6] memory board,
         uint8 row,
         uint8 col
-    ) private view returns (bool) {
+    ) private pure returns (bool) {
         return row < 5 && board[row + 1][col] == 0;
     }
 
