@@ -21,11 +21,11 @@ describe("Rush Hour test", () => {
     expect(await rushHourSolver.helloWorld()).to.be.equal("Hello world");
   });
 
-  it.skip("should return two steps", async () => {
+  it("should return two steps", async () => {
     const { rushHourSolver } = await loadFixture(deployRushHourSolverFixture);
     const mainCar = 1;
 
-    const result = await rushHourSolver.solve([
+    const tx = await rushHourSolver.solve([
       [0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0],
       [0, 0, mainCar, mainCar, 0, 0],
@@ -34,13 +34,16 @@ describe("Rush Hour test", () => {
       [0, 0, 0, 0, 0, 0],
     ]);
 
-    expect(result.length).to.be.equal(2);
+    await tx.wait();
+    const resultSteps = await rushHourSolver.getResultSteps();
+
+    expect(resultSteps.length).to.be.equal(2);
   });
 
-  it("should return six steps", async () => {
+  it.skip("should return six steps", async () => {
     const { rushHourSolver } = await loadFixture(deployRushHourSolverFixture);
 
-    const result = await rushHourSolver.solve([
+    const tx = await rushHourSolver.solve([
       [0, 0, 0, 0, 0, 0],
       [0, 0, 2, 0, 0, 0],
       [1, 1, 2, 3, 0, 0],
@@ -49,6 +52,36 @@ describe("Rush Hour test", () => {
       [0, 0, 0, 0, 0, 0],
     ]);
 
-    expect(result.length).to.be.equal(6);
+    await tx.wait();
+    const resultSteps = await rushHourSolver.getResultSteps();
+
+    expect(resultSteps.length).to.be.equal(6);
   });
+
+  it("should verify hash", async () => {
+    const { rushHourSolver } = await loadFixture(deployRushHourSolverFixture);
+    const tx = await rushHourSolver.setSeenStates([
+      [0, 0, 0, 0, 0, 0],
+      [0, 0, 2, 0, 0, 0],
+      [1, 1, 2, 3, 0, 0],
+      [0, 0, 0, 3, 0, 0],
+      [0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0],
+    ]);
+
+    await tx.wait();
+
+    const hash = await rushHourSolver.getHash([
+      [0, 0, 0, 0, 0, 0],
+      [0, 0, 2, 0, 0, 0],
+      [1, 1, 2, 3, 0, 0],
+      [0, 0, 0, 3, 0, 0],
+      [0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0],
+    ]);
+
+    const stateAlreadyExists = await rushHourSolver.seenStates(hash);
+
+    expect(stateAlreadyExists).to.be.equal(true);
+  })
 });

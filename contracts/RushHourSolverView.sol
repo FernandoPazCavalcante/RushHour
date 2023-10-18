@@ -5,7 +5,7 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "hardhat/console.sol";
 
-contract RushHourSolver {
+contract RushHourSolverView {
     enum Orientation {
         Horizontal,
         Vertical
@@ -18,12 +18,6 @@ contract RushHourSolver {
         Down,
         Left
     }
-
-    struct Neighbor {
-        State[] states;
-        uint8 movesFound;
-    }
-
     struct Step {
         uint8 carId;
         MovementDirection direction;
@@ -42,20 +36,15 @@ contract RushHourSolver {
         return "Hello world";
     }
 
-    function solve(uint8[6][6] memory board) external {
-        bfs(board);
+    function solve(
+        uint8[6][6] memory board
+    ) external view returns (Step[] memory) {
+        return bfs(board);
     }
 
-    mapping(bytes32 => bool) public seenStates;
-    Step[] private resultSteps;
-
-    function getResultSteps() public view returns (Step[] memory) {
-        return resultSteps;
-    }
-
-    function bfs(uint8[6][6] memory board) private {
-        Neighbor memory neighbor = Neighbor(new State[](13), 0);
-
+    function bfs(
+        uint8[6][6] memory board
+    ) private view returns (Step[] memory) {
         Path[] memory queue = new Path[](1000);
         State memory initialState = State(
             board,
@@ -68,6 +57,8 @@ contract RushHourSolver {
 
         queue[0] = initialPath;
 
+        bytes32[] memory seenStates = new bytes32[](1300);
+
         uint256 queueSize = 1;
         uint256 seenStatesSize = 0;
         uint256 nextQueueItem = 0;
@@ -75,34 +66,29 @@ contract RushHourSolver {
         while (queueSize > nextQueueItem) {
             console.log("------------------------");
             console.log("gasLeft: ", gasleft());
-            console.log("queueSize: ", queueSize);
-            console.log("nextQueueItem: ", nextQueueItem);
-
+            console.log(nextQueueItem);
             // Path memory path = queue[nextQueueItem];
             // State memory lastState = queue[nextQueueItem].lastState;
+
+            console.log("isGoalState gasLeft: ", gasleft());
+            if (isGoalState(queue[nextQueueItem].lastState.board)) {
+                console.log("achieve goal state");
+
+                return queue[nextQueueItem].steps;
+            }
+
             console.log("getNextStates gasLeft: ", gasleft());
-            getNextStates(queue[nextQueueItem].lastState.board, neighbor);
+            State[] memory nextStates = getNextStates(
+                queue[nextQueueItem].lastState.board
+            );
 
-            for (uint8 i = 0; i < neighbor.movesFound; i++) {
-                console.log("Adding state");
-                printState(neighbor.states[i]);
-                bytes32 stateAsHash = getHash(neighbor.states[i].board);
+            for (uint8 i = 0; i < nextStates.length; i++) {
+                bytes32 stateAsHash = getHash(nextStates[i].board);
 
-                if (!seenStates[stateAsHash]) {
-                    seenStates[stateAsHash] = true;
+                if (!stateAsHashExists(seenStates, stateAsHash)) {
+                    printState(nextStates[i]);
+                    seenStates[seenStatesSize] = stateAsHash;
                     seenStatesSize++;
-
-                    if (isGoalState(queue[nextQueueItem].lastState.board)) {
-                        console.log("achieve goal state");
-
-                        for (
-                            uint256 index = 1;
-                            index < queue[nextQueueItem].steps.length;
-                            index++
-                        ) {
-                            resultSteps.push(queue[nextQueueItem].steps[index]);
-                        }
-                    }
 
                     Step[] memory steps = new Step[](
                         queue[nextQueueItem].steps.length + 1
@@ -115,25 +101,18 @@ contract RushHourSolver {
                     ) {
                         steps[index] = queue[nextQueueItem].steps[index];
                     }
-                    steps[queue[nextQueueItem].steps.length] = neighbor
-                        .states[i]
+                    steps[queue[nextQueueItem].steps.length] = nextStates[i]
                         .step;
 
-                    queue[queueSize] = Path(neighbor.states[i], steps);
+                    queue[queueSize] = Path(nextStates[i], steps);
                     queueSize++;
                 }
             }
-            console.log("loop: ", nextQueueItem);
-            console.log("neighbors: ", neighbor.movesFound);
             nextQueueItem++;
+            console.log("nextStates.length: ", nextStates.length);
             console.log("------------------------");
         }
-    }
-
-    function setSeenStates(uint8[6][6] memory board) public returns (bytes32) {
-        bytes32 hash = getHash(board);
-        seenStates[hash] = true;
-        return hash;
+        return new Step[](0);
     }
 
     function printState(State memory state) private pure {
@@ -165,17 +144,19 @@ contract RushHourSolver {
     }
 
     function getNextStates(
-        uint8[6][6] memory initialBoard,
-        Neighbor memory neighbor
-    ) private view {
-        console.log("getNextStates: ", gasleft());
-        neighbor.movesFound = 0;
+        uint8[6][6] memory initialBoard
+    ) private view returns (State[] memory) {
+        State[] memory states = new State[](13);
 
+        console.log("getNextStates: ", gasleft());
+
+        uint stateCount = 0;
         for (uint8 row = 0; row < 6; row++) {
             for (uint8 col = 0; col < 6; col++) {
                 uint8 carNumber = initialBoard[row][col];
 
                 if (isCar(carNumber)) {
+                    console.log("is car: ", gasleft());
                     Orientation orientation = getOrientation(
                         initialBoard,
                         row,
@@ -184,76 +165,93 @@ contract RushHourSolver {
                     );
 
                     if (orientation == Orientation.Horizontal) {
+                        console.log("moving horizontal: ", gasleft());
                         bool boardChanged = false;
+                        uint8[6][6] memory boardMovedToRight;
 
-                        boardChanged = moveCarToRight(
-                            neighbor.states,
-                            neighbor.movesFound,
+                        (boardMovedToRight, boardChanged) = moveCarToRight(
                             initialBoard,
                             row,
                             col,
                             carNumber
                         );
                         if (boardChanged) {
-                            neighbor.movesFound++;
+                            states[stateCount] = State(
+                                boardMovedToRight,
+                                Step(carNumber, MovementDirection.Right)
+                            );
+                            stateCount++;
                         }
 
-                        boardChanged = moveCarToLeft(
-                            neighbor.states,
-                            neighbor.movesFound,
+                        uint8[6][6] memory boardMovedToLeft;
+                        (boardMovedToLeft, boardChanged) = moveCarToLeft(
                             initialBoard,
                             row,
                             col,
                             carNumber
                         );
-
                         if (boardChanged) {
-                            neighbor.movesFound++;
+                            states[stateCount] = State(
+                                boardMovedToLeft,
+                                Step(carNumber, MovementDirection.Left)
+                            );
+                            stateCount++;
                         }
                     } else {
                         bool boardChanged;
 
-                        boardChanged = moveCarUp(
-                            neighbor.states,
-                            neighbor.movesFound,
+                        uint8[6][6] memory boardMovedUp;
+
+                        (boardMovedUp, boardChanged) = moveCarUp(
                             initialBoard,
                             row,
                             col,
                             carNumber
                         );
-
                         if (boardChanged) {
-                            neighbor.movesFound++;
+                            states[stateCount] = State(
+                                boardMovedUp,
+                                Step(carNumber, MovementDirection.Up)
+                            );
+                            stateCount++;
                         }
-
-                        boardChanged = moveCarDown(
-                            neighbor.states,
-                            neighbor.movesFound,
+                        uint8[6][6] memory boardMovedDown;
+                        (boardMovedDown, boardChanged) = moveCarDown(
                             initialBoard,
                             row,
                             col,
                             carNumber
                         );
-
                         if (boardChanged) {
-                            neighbor.movesFound++;
+                            states[stateCount] = State(
+                                boardMovedDown,
+                                Step(carNumber, MovementDirection.Down)
+                            );
+                            stateCount++;
                         }
                     }
                 }
             }
         }
+
+        uint statesToDelete = states.length - stateCount;
+
+        assembly {
+            mstore(states, sub(mload(states), statesToDelete))
+        }
+        return states;
     }
 
     function copyBoard(
-        State[] memory states,
-        uint8 statePosition,
         uint8[6][6] memory boardToCopy
-    ) private pure {
+    ) private pure returns (uint8[6][6] memory) {
+        uint8[6][6] memory board;
         for (uint8 row = 0; row < 6; row++) {
             for (uint8 col = 0; col < 6; col++) {
-                states[statePosition].board[row][col] = boardToCopy[row][col];
+                board[row][col] = boardToCopy[row][col];
             }
         }
+        return board;
     }
 
     function isCar(uint8 carNumber) private pure returns (bool) {
@@ -284,35 +282,24 @@ contract RushHourSolver {
     }
 
     function moveCarToRight(
-        State[] memory states,
-        uint8 statePosition,
         uint8[6][6] memory board,
         uint8 row,
         uint8 col,
         uint8 carNumber
-    ) internal pure returns (bool) {
+    ) internal pure returns (uint8[6][6] memory, bool) {
         if (canMoveToRight(board, row, col)) {
-            copyBoard(states, statePosition, board);
+            uint8[6][6] memory boardCopied = copyBoard(board);
 
-            states[statePosition].board[row][col + 1] = carNumber;
+            boardCopied[row][col + 1] = carNumber;
 
-            if (
-                col > 1 &&
-                states[statePosition].board[row][col - 2] == carNumber
-            ) {
-                states[statePosition].board[row][col - 2] = 0;
+            if (col > 1 && boardCopied[row][col - 2] == carNumber) {
+                boardCopied[row][col - 2] = 0;
             } else {
-                states[statePosition].board[row][col - 1] = 0;
+                boardCopied[row][col - 1] = 0;
             }
-
-            states[statePosition].step = Step(
-                carNumber,
-                MovementDirection.Right
-            );
-
-            return true;
+            return (boardCopied, true);
         }
-        return false;
+        return (board, false);
     }
 
     function canMoveToRight(
@@ -324,34 +311,24 @@ contract RushHourSolver {
     }
 
     function moveCarToLeft(
-        State[] memory states,
-        uint8 statePosition,
         uint8[6][6] memory board,
         uint8 row,
         uint8 col,
         uint8 carNumber
-    ) internal pure returns (bool) {
+    ) internal pure returns (uint8[6][6] memory, bool) {
         if (canMoveToLeft(board, row, col)) {
-            copyBoard(states, statePosition, board);
+            uint8[6][6] memory boardCopied = copyBoard(board);
 
-            states[statePosition].board[row][col - 1] = carNumber;
-            if (
-                col < 4 &&
-                states[statePosition].board[row][col + 2] == carNumber
-            ) {
-                states[statePosition].board[row][col + 2] = 0;
+            boardCopied[row][col - 1] = carNumber;
+            if (col < 4 && boardCopied[row][col + 2] == carNumber) {
+                boardCopied[row][col + 2] = 0;
             } else {
-                states[statePosition].board[row][col + 1] = 0;
+                boardCopied[row][col + 1] = 0;
             }
 
-            states[statePosition].step = Step(
-                carNumber,
-                MovementDirection.Left
-            );
-
-            return true;
+            return (boardCopied, true);
         }
-        return false;
+        return (board, false);
     }
 
     function canMoveToLeft(
@@ -363,29 +340,24 @@ contract RushHourSolver {
     }
 
     function moveCarUp(
-        State[] memory states,
-        uint8 statePosition,
         uint8[6][6] memory board,
         uint8 row,
         uint8 col,
         uint8 carNumber
-    ) internal pure returns (bool) {
+    ) internal pure returns (uint8[6][6] memory, bool) {
         if (canMoveUp(board, row, col)) {
-            copyBoard(states, statePosition, board);
-            if (
-                row < 4 &&
-                states[statePosition].board[row + 2][col] == carNumber
-            ) {
-                states[statePosition].board[row + 2][col] = 0;
+            uint8[6][6] memory boardCopied = copyBoard(board);
+
+            if (row < 4 && boardCopied[row + 2][col] == carNumber) {
+                boardCopied[row + 2][col] = 0;
             } else {
-                states[statePosition].board[row + 1][col] = 0;
+                boardCopied[row + 1][col] = 0;
             }
 
-            states[statePosition].board[row - 1][col] = carNumber;
-            states[statePosition].step = Step(carNumber, MovementDirection.Up);
-            return true;
+            boardCopied[row - 1][col] = carNumber;
+            return (boardCopied, true);
         }
-        return false;
+        return (board, false);
     }
 
     function canMoveUp(
@@ -397,33 +369,24 @@ contract RushHourSolver {
     }
 
     function moveCarDown(
-        State[] memory states,
-        uint8 statePosition,
         uint8[6][6] memory board,
         uint8 row,
         uint8 col,
         uint8 carNumber
-    ) internal view returns (bool) {
+    ) internal view returns (uint8[6][6] memory, bool) {
         if (canMoveDown(board, row, col)) {
-            copyBoard(states, statePosition, board);
+            uint8[6][6] memory boardCopied = copyBoard(board);
 
-            if (
-                row > 1 &&
-                states[statePosition].board[row - 2][col] == carNumber
-            ) {
-                states[statePosition].board[row - 2][col] = 0;
+            if (row > 1 && boardCopied[row - 2][col] == carNumber) {
+                boardCopied[row - 2][col] = 0;
             } else {
-                states[statePosition].board[row - 1][col] = 0;
+                boardCopied[row - 1][col] = 0;
             }
 
-            states[statePosition].board[row + 1][col] = carNumber;
-            states[statePosition].step = Step(
-                carNumber,
-                MovementDirection.Down
-            );
-            return true;
+            boardCopied[row + 1][col] = carNumber;
+            return (boardCopied, true);
         }
-        return false;
+        return (board, false);
     }
 
     function canMoveDown(
@@ -434,7 +397,7 @@ contract RushHourSolver {
         return row < 5 && board[row + 1][col] == 0;
     }
 
-    function getHash(uint8[6][6] memory board) public pure returns (bytes32) {
+    function getHash(uint8[6][6] memory board) private pure returns (bytes32) {
         return keccak256(abi.encode(board));
     }
 
